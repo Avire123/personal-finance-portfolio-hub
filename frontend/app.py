@@ -14,7 +14,7 @@ st.set_page_config(
 st.title("📈 Personal Finance & Investment Portfolio Hub")
 
 # --- TAB NAVIGATION ---
-tab1, tab2, tab3 = st.tabs(["📊 Portfolio Overview", "➕ Add Asset", "💸 Expense Tracker"])
+tab1, tab2, tab3, tab4 = st.tabs(["📊 Portfolio Overview", "➕ Add Asset", "💸 Expense Tracker", "👤 Profile"])
 
 # --- TAB 1: PORTFOLIO OVERVIEW ---
 with tab1:
@@ -111,3 +111,29 @@ with tab3:
             st.dataframe(exp_df, use_container_width=True)
     except Exception:
         pass
+
+# --- TAB 4: USER PROFILE ---
+with tab4:
+    st.header("👤 User Profile")
+    # If we already have a user in session state, display their info
+    if "user" in st.session_state:
+        user = st.session_state["user"]
+        st.success(f"Welcome back, {user['name']}!")
+        st.write(f"**Email:** {user['email']}")
+    else:
+        with st.form("user_form"):
+            name = st.text_input("Name")
+            email = st.text_input("Email")
+            submitted = st.form_submit_button("Save Profile")
+            if submitted:
+                payload = {"name": name, "email": email}
+                try:
+                    res = requests.post(f"{API_BASE_URL}/users/", json=payload)
+                    if res.status_code == 201:
+                        st.success("Profile saved successfully!")
+                        st.session_state["user"] = res.json()
+                        st.rerun()
+                    else:
+                        st.error(f"Error saving profile: {res.text}")
+                except Exception as e:
+                    st.error(f"Failed to connect to API: {e}")
